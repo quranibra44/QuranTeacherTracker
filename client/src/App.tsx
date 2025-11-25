@@ -1,29 +1,27 @@
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { AppProvider } from "./lib/store";
+import { Layout } from "./components/Layout";
+import Tracking from "./pages/Tracking";
+import Management from "./pages/Management";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
-
-function Router() {
-  return (
-    <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <AppProvider>
+      <Layout>
+        <Switch>
+          <Route path="/" component={Tracking} />
+          <Route path="/management" component={Management} />
+          <Route>
+             <div className="text-center py-20">
+               <h2 className="text-2xl font-bold">404 - Page Not Found</h2>
+               <p>The page you are looking for does not exist.</p>
+             </div>
+          </Route>
+        </Switch>
+      </Layout>
+      <Toaster />
+    </AppProvider>
   );
 }
 

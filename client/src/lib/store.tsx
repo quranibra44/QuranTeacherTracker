@@ -69,6 +69,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteStudent = (id: string) => {
     setStudents(prev => prev.filter(s => s.id !== id));
+    // Also delete all recitations related to this student
+    setRecitations(prev => prev.filter(r => r.studentId !== id));
     toast({ title: "Deleted successfully", className: "bg-primary text-white border-none" });
   };
 

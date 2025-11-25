@@ -118,11 +118,18 @@ export default function Tracking() {
     }, 600);
   }
 
-  // Activity Feed - Exclude bulk imports
+  // Activity Feed
   const recentActivity = recitations
-    .filter(r => !r.isBulkImport)
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 10);
+  
+  // Arabic rating labels
+  const getRatingLabel = (errors: number) => {
+    if (errors <= 3) return 'ممتاز';
+    if (errors <= 6) return 'جيد جداً';
+    if (errors <= 9) return 'جيد';
+    return 'يحتاج تركيز';
+  };
 
   const getBadgeColor = (errors: number) => {
     if (errors <= 3) return "bg-green-100 text-green-800 border-green-200";
@@ -343,21 +350,18 @@ export default function Tracking() {
             return (
               <Card key={rec.id} className="hover:shadow-md transition-shadow duration-200 border-r-4 border-r-primary/20">
                 <CardContent className="p-4 flex items-center justify-between flex-wrap gap-4">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-lg font-bold text-foreground">{student?.name || 'Unknown Student'}</span>
-                    <div className="text-sm text-muted-foreground flex gap-2 items-center">
-                      <span>👤 {teacher?.name}</span>
-                      <span className="w-1 h-1 bg-muted-foreground rounded-full"></span>
-                      <span>📖 صفحة {rec.pageNumber}</span>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-lg font-bold text-foreground">{student?.name || 'Unknown'}</span>
+                    <div className="text-sm text-muted-foreground space-y-0.5">
+                      <div>👤 {teacher?.name || 'Unknown'}</div>
+                      <div>📅 {format(new Date(rec.timestamp), 'dd/MM/yyyy HH:mm')}</div>
+                      <div>📖 صفحة {rec.pageNumber}</div>
                     </div>
                   </div>
                   
-                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${getBadgeColor(rec.errorCount)}`}>
-                    {rec.errorCount <= 3 && <Star className="w-4 h-4 fill-current" />}
-                    {rec.errorCount > 3 && rec.errorCount <= 9 && <CheckCircle2 className="w-4 h-4" />}
-                    {rec.errorCount > 9 && <AlertCircle className="w-4 h-4" />}
-                    <span className="font-bold text-sm">{rating}</span>
-                    <span className="text-xs opacity-75">({rec.errorCount} أخطاء)</span>
+                  <div className={`flex flex-col items-center gap-2 px-4 py-2 rounded-lg border ${getBadgeColor(rec.errorCount)}`}>
+                    <span className="font-bold text-sm">{getRatingLabel(rec.errorCount)}</span>
+                    <span className="text-xs opacity-75">{rec.errorCount} أخطاء</span>
                   </div>
                 </CardContent>
               </Card>

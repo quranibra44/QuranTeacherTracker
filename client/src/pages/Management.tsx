@@ -68,12 +68,12 @@ export default function Management() {
         <Card className="border-t-4 border-t-secondary">
            <CardHeader>
              <CardTitle className="flex items-center gap-2 text-xl">
-               <FileText className="w-5 h-5 text-secondary" /> تقارير المعلمين
+               <FileText className="w-5 h-5 text-secondary" /> تقارير المعلمات
              </CardTitle>
            </CardHeader>
            <CardContent className="space-y-3">
              <ReportDialog 
-               title="تقرير المعلمين الأسبوعي" 
+               title="تقرير المعلمات الأسبوعي" 
                type="weekly" 
                role="teacher" 
                data={teachers} 
@@ -85,7 +85,7 @@ export default function Management() {
                </Button>
              </ReportDialog>
              <ReportDialog 
-               title="تقرير المعلمين الشهري" 
+               title="تقرير المعلمات الشهري" 
                type="monthly" 
                role="teacher" 
                data={teachers} 
@@ -101,12 +101,12 @@ export default function Management() {
         <Card className="border-t-4 border-t-blue-500">
            <CardHeader>
              <CardTitle className="flex items-center gap-2 text-xl">
-               <FileText className="w-5 h-5 text-blue-500" /> تقارير الطلاب
+               <FileText className="w-5 h-5 text-blue-500" /> تقارير الطالبات
              </CardTitle>
            </CardHeader>
            <CardContent className="space-y-3">
             <ReportDialog 
-               title="تقرير الطلاب الأسبوعي" 
+               title="تقرير الطالبات الأسبوعي" 
                type="weekly" 
                role="student" 
                data={students} 
@@ -118,7 +118,7 @@ export default function Management() {
                </Button>
              </ReportDialog>
              <ReportDialog 
-               title="تقرير الطلاب الشهري" 
+               title="تقرير الطالبات الشهري" 
                type="monthly" 
                role="student" 
                data={students} 
@@ -151,11 +151,11 @@ export default function Management() {
           <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="bg-white p-6 rounded-xl text-center border border-border shadow-sm hover:shadow-md transition-shadow">
               <div className="text-4xl font-bold text-primary mb-1">{teachers.length}</div>
-              <div className="text-sm font-medium text-muted-foreground">معلم</div>
+              <div className="text-sm font-medium text-muted-foreground">معلمة</div>
             </div>
             <div className="bg-white p-6 rounded-xl text-center border border-border shadow-sm hover:shadow-md transition-shadow">
               <div className="text-4xl font-bold text-primary mb-1">{students.length}</div>
-              <div className="text-sm font-medium text-muted-foreground">طالب</div>
+              <div className="text-sm font-medium text-muted-foreground">طالبة</div>
             </div>
             <div className="bg-white p-6 rounded-xl text-center border border-border shadow-sm hover:shadow-md transition-shadow">
               <div className="text-4xl font-bold text-primary mb-1">{recitations.length}</div>
@@ -273,7 +273,7 @@ function TeacherManager({ teachers, addTeacher, deleteTeacher }: any) {
       <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
         <CardTitle className="text-xl font-bold flex items-center gap-2">
           <Users className="w-5 h-5 text-secondary" />
-          المعلمين ({teachers.length})
+          المعلمات ({teachers.length})
         </CardTitle>
         <div className="flex gap-2">
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -284,11 +284,11 @@ function TeacherManager({ teachers, addTeacher, deleteTeacher }: any) {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>إضافة معلم جديد</DialogTitle>
+                <DialogTitle>إضافة معلمة جديدة</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <Input 
-                  placeholder="اسم المعلم" 
+                  placeholder="اسم المعلمة" 
                   value={name} 
                   onChange={e => setName(e.target.value)} 
                   className="text-lg"
@@ -326,7 +326,7 @@ function TeacherManager({ teachers, addTeacher, deleteTeacher }: any) {
       <CardContent className="pt-4">
         <div className="max-h-[400px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
           {teachers.length === 0 ? (
-            <p className="text-muted-foreground text-center py-10 bg-muted/20 rounded-lg border border-dashed">لا يوجد معلمين</p>
+            <p className="text-muted-foreground text-center py-10 bg-muted/20 rounded-lg border border-dashed">لا توجد معلمات</p>
           ) : (
             <>
               {displayTeachers.map((t: any, i: number) => (
@@ -397,7 +397,7 @@ function StudentManager({ students, addStudent, deleteStudent }: any) {
       <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
         <CardTitle className="text-xl font-bold flex items-center gap-2">
           <GraduationCap className="w-5 h-5 text-secondary" />
-          الطلاب ({students.length})
+          الطالبات ({students.length})
         </CardTitle>
         <div className="flex gap-2">
             {/* Add Single Student */}
@@ -409,11 +409,11 @@ function StudentManager({ students, addStudent, deleteStudent }: any) {
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                <DialogTitle>إضافة طالب جديد</DialogTitle>
+                <DialogTitle>إضافة طالبة جديدة</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <Input 
-                    placeholder="اسم الطالب" 
+                    placeholder="اسم الطالبة" 
                     value={name} 
                     onChange={e => setName(e.target.value)} 
                     className="text-lg"
@@ -452,7 +452,7 @@ function StudentManager({ students, addStudent, deleteStudent }: any) {
       <CardContent className="pt-4">
         <div className="max-h-[400px] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
           {students.length === 0 ? (
-            <p className="text-muted-foreground text-center py-10 bg-muted/20 rounded-lg border border-dashed">لا يوجد طلاب</p>
+            <p className="text-muted-foreground text-center py-10 bg-muted/20 rounded-lg border border-dashed">لا توجد طالبات</p>
           ) : (
             <>
               {displayStudents.map((s: any, i: number) => (
@@ -559,7 +559,7 @@ function ReportDialog({ title, type, role, data, recitations, children }: any) {
           <div className="relative">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
             <Input 
-              placeholder={`🔍 بحث عن ${role === 'teacher' ? 'معلم' : 'طالب'}...`} 
+              placeholder={`🔍 بحث عن ${role === 'teacher' ? 'معلمة' : 'طالبة'}...`} 
               className="pr-10 h-12 text-lg"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

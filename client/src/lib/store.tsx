@@ -126,8 +126,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return strValue;
     };
     
-    // Header row
-    let csv = BOM + 'المعلم,الطالب,الصفحة,الأخطاء,التاريخ والوقت,التقييم\n';
+    // Header row with tab delimiter for better Excel compatibility
+    let csv = BOM + 'المعلمة\tالطالبة\tالصفحة\tالأخطاء\tالتاريخ والوقت\tالتقييم\n';
     
     // Data rows
     recitations.forEach(rec => {
@@ -137,13 +137,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const time = new Date(rec.timestamp).toLocaleTimeString('ar-SA');
       const rating = getRating(rec.errorCount);
       const row = [
-        escapeCsv(teacher),
-        escapeCsv(student),
-        escapeCsv(rec.pageNumber),
-        escapeCsv(rec.errorCount),
-        escapeCsv(`${date} ${time}`),
-        escapeCsv(rating)
-      ].join(',');
+        teacher,
+        student,
+        rec.pageNumber,
+        rec.errorCount,
+        `${date} ${time}`,
+        rating
+      ].join('\t');
       csv += row + '\n';
     });
     

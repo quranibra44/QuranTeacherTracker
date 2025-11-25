@@ -105,18 +105,16 @@ export function StudentDetailReport({ student, recitations }: { student: Student
             <div className="text-xs text-green-600">صفحة تلاوة</div>
           </CardContent>
         </Card>
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="bg-red-50 border-red-200">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">{badges.length}</div>
-            <div className="text-xs text-muted-foreground">الأوسمة المكتسبة</div>
+            <div className="text-2xl font-bold text-red-600">{totalErrors}</div>
+            <div className="text-xs text-red-600">إجمالي الأخطاء</div>
           </CardContent>
         </Card>
         <Card className="bg-primary/5 border-primary/20">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">
-              {studentRecitations.length > 0 ? studentRecitations[studentRecitations.length - 1].pageNumber : '-'}
-            </div>
-            <div className="text-xs text-muted-foreground">آخر صفحة</div>
+            <div className="text-2xl font-bold text-primary">{badges.length}</div>
+            <div className="text-xs text-muted-foreground">الأوسمة المكتسبة</div>
           </CardContent>
         </Card>
       </div>
@@ -126,7 +124,7 @@ export function StudentDetailReport({ student, recitations }: { student: Student
         <CardHeader className="bg-muted/10 pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <BookCheck className="w-5 h-5 text-green-600" />
-            تلاوات الطالب
+            تلاوات الطالبة
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-6">

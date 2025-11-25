@@ -13,7 +13,7 @@ interface AppContextType {
   addRecitation: (recitation: Omit<Recitation, 'id' | 'timestamp'>) => void;
   addRecitationBatch: (items: Omit<Recitation, 'id' | 'timestamp'>[]) => void;
   importData: (data: any) => void;
-  exportData: (format?: 'json' | 'csv') => void;
+  exportData: (format?: 'csv') => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -106,55 +106,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast({ title: `Added ${items.length} records successfully`, className: "bg-primary text-white border-none" });
   };
 
-  const exportData = (format: 'json' | 'csv' = 'json') => {
-    if (format === 'csv') {
-      // Generate CSV
-      let csv = 'المعلم,الطالب,الصفحة,الأخطاء,التاريخ والوقت,التقييم\n';
-      
-      const getRating = (errors: number) => {
-        if (errors <= 3) return 'ممتاز';
-        if (errors <= 6) return 'جيد جداً';
-        if (errors <= 9) return 'جيد';
-        return 'يحتاج تركيز';
-      };
-      
-      recitations.forEach(rec => {
-        const teacher = teachers.find(t => t.id === rec.teacherId)?.name || 'غير معروف';
-        const student = students.find(s => s.id === rec.studentId)?.name || 'غير معروف';
-        const date = new Date(rec.timestamp).toLocaleString('ar-SA');
-        const rating = getRating(rec.errorCount);
-        csv += `"${teacher}","${student}",${rec.pageNumber},${rec.errorCount},"${date}","${rating}"\n`;
-      });
-      
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `quran-tracking-export-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      toast({ title: `تم تصدير ${recitations.length} تلاوة إلى CSV`, className: "bg-primary text-white border-none" });
-    } else {
-      // JSON export
-      const data = {
-        version: 1,
-        exportDate: new Date().toISOString(),
-        teachers,
-        students,
-        readings: recitations,
-        totalRecords: teachers.length + students.length + recitations.length
-      };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `quran-tracking-export-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      toast({ title: `تم تصدير ${data.totalRecords} سجل إلى JSON`, className: "bg-primary text-white border-none" });
-    }
+  const exportData = (format: 'csv' = 'csv') => {
+    // Generate CSV
+    let csv = 'المعلم,الطالب,الصفحة,الأخطاء,التاريخ والوقت,التقييم\n';
+    
+    const getRating = (errors: number) => {
+      if (errors <= 3) return 'ممتاز';
+      if (errors <= 6) return 'جيد جداً';
+      if (errors <= 9) return 'جيد';
+      return 'يحتاج تركيز';
+    };
+    
+    recitations.forEach(rec => {
+      const teacher = teachers.find(t => t.id === rec.teacherId)?.name || 'غير معروف';
+      const student = students.find(s => s.id === rec.studentId)?.name || 'غير معروف';
+      const date = new Date(rec.timestamp).toLocaleString('ar-SA');
+      const rating = getRating(rec.errorCount);
+      csv += `"${teacher}","${student}",${rec.pageNumber},${rec.errorCount},"${date}","${rating}"\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `quran-tracking-report-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast({ title: `تم تصدير ${recitations.length} تلاوة كتقرير`, className: "bg-primary text-white border-none" });
   };
 
   const importData = (data: any) => {

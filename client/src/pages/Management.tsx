@@ -85,37 +85,9 @@ export default function Management() {
             </div>
           </div>
           <div className="flex gap-4">
-            <Button onClick={() => exportData('json')} className="flex-1 bg-primary text-white h-12 text-lg shadow-sm hover:shadow hover:-translate-y-0.5 transition-all">
-              <Download className="ml-2 w-5 h-5" /> تصدير JSON
+            <Button onClick={() => exportData('csv')} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12 text-lg shadow-sm hover:shadow hover:-translate-y-0.5 transition-all print:bg-blue-600">
+              <Download className="ml-2 w-5 h-5" /> طباعة التقرير (CSV)
             </Button>
-            <Button onClick={() => exportData('csv')} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12 text-lg shadow-sm hover:shadow hover:-translate-y-0.5 transition-all">
-              <Download className="ml-2 w-5 h-5" /> تصدير CSV
-            </Button>
-            <div className="relative flex-1">
-              <input 
-                type="file" 
-                id="import-file" 
-                className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      try {
-                        const data = JSON.parse(ev.target?.result as string);
-                        importData(data);
-                      } catch(err) {
-                        console.error(err);
-                      }
-                    };
-                    reader.readAsText(file);
-                  }
-                }}
-              />
-              <Button variant="outline" className="w-full h-12 border-primary text-primary hover:bg-primary/5 text-lg">
-                <Upload className="ml-2 w-5 h-5" /> استيراد البيانات
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -238,6 +210,9 @@ function DeleteConfirmButton({ onDelete }: { onDelete: () => void }) {
 function TeacherManager({ teachers, addTeacher, deleteTeacher }: any) {
   const [name, setName] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [multipleOpen, setMultipleOpen] = useState(false);
+  const [multipleText, setMultipleText] = useState('');
+  const [showAll, setShowAll] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -247,6 +222,18 @@ function TeacherManager({ teachers, addTeacher, deleteTeacher }: any) {
       setIsOpen(false);
     }
   };
+
+  const handleMultipleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const names = multipleText.split('\n').filter(n => n.trim());
+    names.forEach((n, i) => {
+      setTimeout(() => addTeacher(n.trim()), i * 200);
+    });
+    setMultipleText('');
+    setMultipleOpen(false);
+  };
+
+  const displayTeachers = showAll ? teachers : teachers.slice(0, 10);
 
   return (
     <Card>
@@ -278,10 +265,29 @@ function TeacherManager({ teachers, addTeacher, deleteTeacher }: any) {
             </DialogContent>
           </Dialog>
           
-           {/* Multiple Add Teacher - Simplified for now */}
-           <Button size="sm" variant="outline" className="text-secondary border-secondary hover:bg-secondary/10 gap-1">
-                📝
-           </Button>
+           <Dialog open={multipleOpen} onOpenChange={setMultipleOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline" className="text-secondary border-secondary hover:bg-secondary/10 text-xs">
+                إضافة مجموعة مدرسين
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>إضافة عدة مدرسين</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleMultipleSubmit} className="space-y-4 mt-4">
+                <div className="text-sm text-muted-foreground">أدخل كل اسم في سطر منفصل</div>
+                <Textarea 
+                  placeholder="أحمد محمد&#10;فاطمة علي&#10;عائشة حسن" 
+                  rows={5}
+                  value={multipleText} 
+                  onChange={e => setMultipleText(e.target.value)} 
+                  className="text-lg"
+                />
+                <Button type="submit" className="w-full h-12 bg-green-600 hover:bg-green-700">إضافة الكل</Button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </CardHeader>
       <CardContent className="pt-4">
@@ -289,15 +295,35 @@ function TeacherManager({ teachers, addTeacher, deleteTeacher }: any) {
           {teachers.length === 0 ? (
             <p className="text-muted-foreground text-center py-10 bg-muted/20 rounded-lg border border-dashed">لا يوجد معلمين</p>
           ) : (
-            teachers.map((t: any, i: number) => (
-              <div key={t.id} className="flex items-center justify-between bg-white border p-3 rounded-md group hover:border-secondary/50 hover:shadow-sm transition-all">
-                <span className="font-medium flex gap-3">
-                  <span className="text-muted-foreground w-6 text-center">{i + 1}.</span>
-                  {t.name}
-                </span>
-                <DeleteConfirmButton onDelete={() => deleteTeacher(t.id)} />
-              </div>
-            ))
+            <>
+              {displayTeachers.map((t: any, i: number) => (
+                <div key={t.id} className="flex items-center justify-between bg-white border p-3 rounded-md group hover:border-secondary/50 hover:shadow-sm transition-all">
+                  <span className="font-medium flex gap-3">
+                    <span className="text-muted-foreground w-6 text-center">{i + 1}.</span>
+                    {t.name}
+                  </span>
+                  <DeleteConfirmButton onDelete={() => deleteTeacher(t.id)} />
+                </div>
+              ))}
+              {teachers.length > 10 && !showAll && (
+                <Button 
+                  variant="ghost" 
+                  className="w-full mt-2 text-primary hover:bg-primary/5"
+                  onClick={() => setShowAll(true)}
+                >
+                  عرض الكل ({teachers.length})
+                </Button>
+              )}
+              {showAll && teachers.length > 10 && (
+                <Button 
+                  variant="ghost" 
+                  className="w-full mt-2 text-muted-foreground hover:bg-muted/20"
+                  onClick={() => setShowAll(false)}
+                >
+                  إخفاء الإضافيين
+                </Button>
+              )}
+            </>
           )}
         </div>
       </CardContent>
@@ -310,6 +336,7 @@ function StudentManager({ students, addStudent, deleteStudent }: any) {
   const [isOpen, setIsOpen] = useState(false);
   const [multipleOpen, setMultipleOpen] = useState(false);
   const [multipleText, setMultipleText] = useState('');
+  const [showAll, setShowAll] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -330,6 +357,7 @@ function StudentManager({ students, addStudent, deleteStudent }: any) {
     setMultipleOpen(false);
   };
 
+  const displayStudents = showAll ? students : students.slice(0, 10);
 
   return (
     <Card>
@@ -365,8 +393,8 @@ function StudentManager({ students, addStudent, deleteStudent }: any) {
             {/* Bulk Add Students */}
             <Dialog open={multipleOpen} onOpenChange={setMultipleOpen}>
             <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="text-secondary border-secondary hover:bg-secondary/10 gap-1">
-                📝
+                <Button size="sm" variant="outline" className="text-secondary border-secondary hover:bg-secondary/10 text-xs">
+                إضافة مجموعة طلاب
                 </Button>
             </DialogTrigger>
             <DialogContent>
@@ -393,15 +421,35 @@ function StudentManager({ students, addStudent, deleteStudent }: any) {
           {students.length === 0 ? (
             <p className="text-muted-foreground text-center py-10 bg-muted/20 rounded-lg border border-dashed">لا يوجد طلاب</p>
           ) : (
-            students.map((s: any, i: number) => (
-              <div key={s.id} className="flex items-center justify-between bg-white border p-3 rounded-md group hover:border-secondary/50 hover:shadow-sm transition-all">
-                 <span className="font-medium flex gap-3">
-                  <span className="text-muted-foreground w-6 text-center">{i + 1}.</span>
-                  {s.name}
-                </span>
-                <DeleteConfirmButton onDelete={() => deleteStudent(s.id)} />
-              </div>
-            ))
+            <>
+              {displayStudents.map((s: any, i: number) => (
+                <div key={s.id} className="flex items-center justify-between bg-white border p-3 rounded-md group hover:border-secondary/50 hover:shadow-sm transition-all">
+                   <span className="font-medium flex gap-3">
+                    <span className="text-muted-foreground w-6 text-center">{i + 1}.</span>
+                    {s.name}
+                  </span>
+                  <DeleteConfirmButton onDelete={() => deleteStudent(s.id)} />
+                </div>
+              ))}
+              {students.length > 10 && !showAll && (
+                <Button 
+                  variant="ghost" 
+                  className="w-full mt-2 text-primary hover:bg-primary/5"
+                  onClick={() => setShowAll(true)}
+                >
+                  عرض الكل ({students.length})
+                </Button>
+              )}
+              {showAll && students.length > 10 && (
+                <Button 
+                  variant="ghost" 
+                  className="w-full mt-2 text-muted-foreground hover:bg-muted/20"
+                  onClick={() => setShowAll(false)}
+                >
+                  إخفاء الإضافيين
+                </Button>
+              )}
+            </>
           )}
         </div>
       </CardContent>
@@ -447,8 +495,15 @@ function ReportDialog({ title, type, role, data, recitations, children }: any) {
 
       return true;
     }).sort((a: any, b: any) => {
-      if (sort === 'most') return b.stats.count - a.stats.count;
-      if (sort === 'least') return a.stats.count - b.stats.count;
+      // For student reports: sort by days
+      if (role === 'student') {
+        if (sort === 'most') return b.stats.days - a.stats.days;
+        if (sort === 'least') return a.stats.days - b.stats.days;
+      } else {
+        // For teacher reports: sort by days
+        if (sort === 'most') return b.stats.days - a.stats.days;
+        if (sort === 'least') return a.stats.days - b.stats.days;
+      }
       if (sort === 'name-asc') return a.name.localeCompare(b.name);
       if (sort === 'name-desc') return b.name.localeCompare(a.name);
       return 0;
@@ -508,8 +563,8 @@ function ReportDialog({ title, type, role, data, recitations, children }: any) {
                  <SelectValue placeholder="ترتيب حسب" />
                </SelectTrigger>
                <SelectContent>
-                 <SelectItem value="most">الأكثر تسجيلاً</SelectItem>
-                 <SelectItem value="least">الأقل تسجيلاً</SelectItem>
+                 <SelectItem value="most">{role === 'student' ? 'أكثر أيام' : 'أكثر أيام'}</SelectItem>
+                 <SelectItem value="least">{role === 'student' ? 'أقل أيام' : 'أقل أيام'}</SelectItem>
                  <SelectItem value="name-asc">الاسم (أ-ي)</SelectItem>
                  <SelectItem value="name-desc">الاسم (ي-أ)</SelectItem>
                </SelectContent>
@@ -532,23 +587,17 @@ function ReportDialog({ title, type, role, data, recitations, children }: any) {
                         {item.stats.count > 0 && <span className="text-yellow-500 text-xl">⭐</span>}
                       </div>
                       
-                      <div className="grid grid-cols-3 gap-2 text-center text-sm mb-3">
+                      <div className={`grid ${role === 'student' ? 'grid-cols-1' : 'grid-cols-2'} gap-2 text-center text-sm mb-3`}>
                         <div className="bg-muted/30 p-2 rounded group-hover:bg-primary/5 transition-colors">
                           <div className="font-bold text-primary">{item.stats.days}</div>
                           <div className="text-xs text-muted-foreground">أيام</div>
                         </div>
-                        <div className="bg-muted/30 p-2 rounded group-hover:bg-primary/5 transition-colors">
-                          <div className="font-bold text-primary">
-                            {role === 'teacher' ? item.stats.uniqueStudents : item.stats.errors}
+                        {role === 'teacher' && (
+                          <div className="bg-muted/30 p-2 rounded group-hover:bg-primary/5 transition-colors">
+                            <div className="font-bold text-primary">{item.stats.uniqueStudents}</div>
+                            <div className="text-xs text-muted-foreground">طلاب</div>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {role === 'teacher' ? 'طلاب' : 'أخطاء'}
-                          </div>
-                        </div>
-                        <div className="bg-muted/30 p-2 rounded group-hover:bg-primary/5 transition-colors">
-                          <div className="font-bold text-primary">{item.stats.count}</div>
-                          <div className="text-xs text-muted-foreground">تلاوة</div>
-                        </div>
+                        )}
                       </div>
                       <div className="text-center text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                          اضغط للتفاصيل

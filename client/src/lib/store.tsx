@@ -107,8 +107,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const exportData = (format: 'csv' = 'csv') => {
-    // UTF-8 BOM for proper Arabic support in Excel
-    const BOM = '\uFEFF';
+    // Create CSV content using tab delimiter for better Excel compatibility
+    let csv = 'المعلمة\tالطالبة\tالصفحة\tالأخطاء\tالتاريخ والوقت\tالتقييم\n';
     
     const getRating = (errors: number) => {
       if (errors <= 3) return 'ممتاز';
@@ -117,40 +117,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return 'يحتاج تركيز';
     };
     
-    // Properly escape CSV values with quotes
-    const escapeCsv = (value: string | number): string => {
-      const strValue = String(value);
-      // Always quote to preserve Arabic text properly in Excel
-      return `"${strValue.replace(/"/g, '""')}"`;
-    };
-    
-    // Header row - comma-separated with quotes
-    let csv = BOM + '"المعلمة","الطالبة","الصفحة","الأخطاء","التاريخ والوقت","التقييم"\n';
-    
-    // Data rows
+    // Data rows using tab delimiter
     recitations.forEach(rec => {
       const teacher = teachers.find(t => t.id === rec.teacherId)?.name || 'غير معروف';
       const student = students.find(s => s.id === rec.studentId)?.name || 'غير معروف';
       const date = new Date(rec.timestamp).toLocaleDateString('ar-SA');
       const time = new Date(rec.timestamp).toLocaleTimeString('ar-SA');
       const rating = getRating(rec.errorCount);
-      const row = [
-        escapeCsv(teacher),
-        escapeCsv(student),
-        escapeCsv(rec.pageNumber),
-        escapeCsv(rec.errorCount),
-        escapeCsv(`${date} ${time}`),
-        escapeCsv(rating)
-      ].join(',');
-      csv += row + '\n';
+      csv += `${teacher}\t${student}\t${rec.pageNumber}\t${rec.errorCount}\t${date} ${time}\t${rating}\n`;
     });
     
-    // Use UTF-8 encoding with BOM for proper Arabic character support
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    // Create file with UTF-8 BOM for Excel compatibility
+    const BOM = '\uFEFF';
+    const csvWithBOM = BOM + csv;
+    
+    // Use tab-separated format which Excel recognizes better
+    const blob = new Blob([csvWithBOM], { type: 'text/tab-separated-values;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `quran-tracking-report-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `quran-tracking-report-${new Date().toISOString().split('T')[0]}.tsv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

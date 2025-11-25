@@ -92,8 +92,20 @@ export default function Management() {
                recitations={recitations}
              >
                <Button variant="outline" className="w-full justify-between h-14 text-lg hover:bg-secondary/5 hover:text-secondary hover:border-secondary transition-colors">
-                 <span>تقرير شهري (30 يوم)</span>
+                 <span>تقرير شهري</span>
                  <span className="text-2xl">📆</span>
+               </Button>
+             </ReportDialog>
+             <ReportDialog 
+               title="تقرير المعلمات السنوي" 
+               type="yearly" 
+               role="teacher" 
+               data={teachers} 
+               recitations={recitations}
+             >
+               <Button variant="outline" className="w-full justify-between h-14 text-lg hover:bg-secondary/5 hover:text-secondary hover:border-secondary transition-colors">
+                 <span>تقرير سنوي</span>
+                 <span className="text-2xl">📊</span>
                </Button>
              </ReportDialog>
            </CardContent>
@@ -125,8 +137,20 @@ export default function Management() {
                recitations={recitations}
              >
                <Button variant="outline" className="w-full justify-between h-14 text-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors">
-                 <span>تقرير شهري (30 يوم)</span>
+                 <span>تقرير شهري</span>
                  <span className="text-2xl">📆</span>
+               </Button>
+             </ReportDialog>
+             <ReportDialog 
+               title="تقرير الطالبات السنوي" 
+               type="yearly" 
+               role="student" 
+               data={students} 
+               recitations={recitations}
+             >
+               <Button variant="outline" className="w-full justify-between h-14 text-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors">
+                 <span>تقرير سنوي</span>
+                 <span className="text-2xl">📊</span>
                </Button>
              </ReportDialog>
            </CardContent>
@@ -494,11 +518,24 @@ function ReportDialog({ title, type, role, data, recitations, children }: any) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all'); // all, active, inactive
   const [sort, setSort] = useState('most');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // Filter Logic
   const filteredData = useMemo(() => {
-    const days = type === 'weekly' ? 7 : 30;
-    const cutoffDate = subDays(new Date(), days);
+    let cutoffDate;
+    
+    if (type === 'weekly') {
+      cutoffDate = subDays(new Date(), 7);
+    } else if (type === 'monthly') {
+      // Get first day of selected month
+      const firstDay = new Date(selectedYear, selectedMonth, 1);
+      cutoffDate = firstDay;
+    } else { // yearly
+      // Get first day of selected year
+      const firstDay = new Date(selectedYear, 0, 1);
+      cutoffDate = firstDay;
+    }
 
     return data.filter((item: any) => {
       // Search
@@ -541,7 +578,7 @@ function ReportDialog({ title, type, role, data, recitations, children }: any) {
       if (sort === 'name-desc') return b.name.localeCompare(a.name);
       return 0;
     });
-  }, [data, recitations, searchTerm, filter, sort, type, role]);
+  }, [data, recitations, searchTerm, filter, sort, type, role, selectedMonth, selectedYear]);
 
   // Summary stats
   const totalRecitations = filteredData.reduce((acc: number, curr: any) => acc + curr.stats.count, 0);
@@ -565,6 +602,45 @@ function ReportDialog({ title, type, role, data, recitations, children }: any) {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          
+          {(type === 'monthly' || type === 'yearly') && (
+            <div className="flex gap-3 flex-wrap">
+              {type === 'monthly' && (
+                <>
+                  <Select value={String(selectedMonth)} onValueChange={(val) => setSelectedMonth(parseInt(val))}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="اختر الشهر" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">يناير</SelectItem>
+                      <SelectItem value="1">فبراير</SelectItem>
+                      <SelectItem value="2">مارس</SelectItem>
+                      <SelectItem value="3">أبريل</SelectItem>
+                      <SelectItem value="4">مايو</SelectItem>
+                      <SelectItem value="5">يونيو</SelectItem>
+                      <SelectItem value="6">يوليو</SelectItem>
+                      <SelectItem value="7">أغسطس</SelectItem>
+                      <SelectItem value="8">سبتمبر</SelectItem>
+                      <SelectItem value="9">أكتوبر</SelectItem>
+                      <SelectItem value="10">نوفمبر</SelectItem>
+                      <SelectItem value="11">ديسمبر</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+              <Select value={String(selectedYear)} onValueChange={(val) => setSelectedYear(parseInt(val))}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="اختر السنة" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                    <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
           <div className="flex flex-wrap gap-2 justify-between">
             <div className="flex gap-2">
               <Button 

@@ -36,7 +36,8 @@ export default function Management() {
             <div className="mx-auto bg-secondary/10 w-20 h-20 rounded-full flex items-center justify-center mb-4">
               <Lock className="w-10 h-10 text-secondary" />
             </div>
-            <CardTitle className="text-2xl text-secondary-foreground">الرجاء إدخال كلمة المرور</CardTitle>
+            <CardTitle className="text-xl text-secondary mb-3">إدارة المقرأة</CardTitle>
+            <p className="text-2xl text-secondary-foreground">الرجاء إدخال كلمة المرور</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">

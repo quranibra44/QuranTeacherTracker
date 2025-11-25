@@ -21,7 +21,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <h1 className="text-3xl md:text-4xl font-bold text-primary text-center leading-tight">
           مقرأة مدرسة سمية
         </h1>
-        <p className="text-sm text-secondary font-medium">نظام متابعة تلاوة القرآن الكريم</p>
+        <p className="text-sm text-secondary font-medium italic">﴿اقرأ باسم ربك الذي خلق﴾</p>
 
         {/* Navigation Tabs - Improved */}
         <nav className="flex w-full max-w-2xl bg-white rounded-xl shadow-lg border-2 border-primary/10 p-2 gap-2">

@@ -109,8 +109,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const exportData = (format: 'csv' = 'csv') => {
     // UTF-8 BOM for proper Arabic support in Excel
     const BOM = '\uFEFF';
-    // Generate CSV with tab delimiter for better Arabic support and compatibility
-    let csv = BOM + 'المعلم\tالطالب\tالصفحة\tالأخطاء\tالتاريخ والوقت\tالتقييم\n';
     
     const getRating = (errors: number) => {
       if (errors <= 3) return 'ممتاز';
@@ -119,13 +117,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return 'يحتاج تركيز';
     };
     
+    // Escape CSV function for proper quoting
+    const escapeCsv = (value: string | number) => {
+      const strValue = String(value);
+      if (strValue.includes(',') || strValue.includes('"') || strValue.includes('\n')) {
+        return `"${strValue.replace(/"/g, '""')}"`;
+      }
+      return strValue;
+    };
+    
+    // Header row
+    let csv = BOM + 'المعلم,الطالب,الصفحة,الأخطاء,التاريخ والوقت,التقييم\n';
+    
+    // Data rows
     recitations.forEach(rec => {
       const teacher = teachers.find(t => t.id === rec.teacherId)?.name || 'غير معروف';
       const student = students.find(s => s.id === rec.studentId)?.name || 'غير معروف';
       const date = new Date(rec.timestamp).toLocaleDateString('ar-SA');
       const time = new Date(rec.timestamp).toLocaleTimeString('ar-SA');
       const rating = getRating(rec.errorCount);
-      csv += `${teacher}\t${student}\t${rec.pageNumber}\t${rec.errorCount}\t${date} ${time}\t${rating}\n`;
+      const row = [
+        escapeCsv(teacher),
+        escapeCsv(student),
+        escapeCsv(rec.pageNumber),
+        escapeCsv(rec.errorCount),
+        escapeCsv(`${date} ${time}`),
+        escapeCsv(rating)
+      ].join(',');
+      csv += row + '\n';
     });
     
     // Use UTF-8 encoding with BOM for proper Arabic character support
@@ -138,6 +157,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     a.click();
     document.body.removeChild(a);
     toast({ title: `تم تصدير ${recitations.length} تلاوة كتقرير`, className: "bg-primary text-white border-none" });
+  };
+
+  const clearDatabase = () => {
+    setTeachers([]);
+    setStudents([]);
+    setRecitations([]);
+    localStorage.removeItem('teachers');
+    localStorage.removeItem('students');
+    localStorage.removeItem('recitations');
+    toast({ title: 'تم مسح قاعدة البيانات بنجاح', className: "bg-primary text-white border-none" });
   };
 
   const importData = (data: any) => {
@@ -168,4 +197,13 @@ export const useAppStore = () => {
   const context = useContext(AppContext);
   if (!context) throw new Error('useAppStore must be used within AppProvider');
   return context;
+};
+
+export const useClearDatabase = () => {
+  return () => {
+    localStorage.removeItem('teachers');
+    localStorage.removeItem('students');
+    localStorage.removeItem('recitations');
+    window.location.reload();
+  };
 };

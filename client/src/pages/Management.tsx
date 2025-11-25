@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useAppStore } from '@/lib/store';
+import { useAppStore, useClearDatabase } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,9 @@ export default function Management() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isClearingConfirm, setIsClearingConfirm] = useState(false);
   const { teachers, students, recitations, addTeacher, deleteTeacher, addStudent, deleteStudent, exportData, importData } = useAppStore();
+  const clearDatabase = useClearDatabase();
 
   // Login logic
   const handleLogin = (e: React.FormEvent) => {
@@ -164,6 +166,37 @@ export default function Management() {
             <Button onClick={() => exportData('csv')} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12 text-lg shadow-sm hover:shadow hover:-translate-y-0.5 transition-all">
               <Download className="ml-2 w-5 h-5" /> تصدير التقرير (CSV)
             </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="destructive" className="flex-1 h-12 text-lg shadow-sm hover:shadow hover:-translate-y-0.5 transition-all">
+                  <Trash2 className="ml-2 w-5 h-5" /> مسح قاعدة البيانات
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="text-destructive">تحذير: مسح قاعدة البيانات</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <p className="text-foreground">هل أنت متأكد من رغبتك في حذف جميع البيانات؟ لا يمكن التراجع عن هذا الإجراء.</p>
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="destructive" 
+                      onClick={clearDatabase}
+                      className="flex-1"
+                    >
+                      نعم، احذف كل شيء
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsClearingConfirm(false)}
+                      className="flex-1"
+                    >
+                      إلغاء
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardContent>
       </Card>

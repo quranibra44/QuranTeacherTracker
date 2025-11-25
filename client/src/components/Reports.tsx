@@ -58,14 +58,14 @@ export function StudentDetailReport({ student, recitations }: { student: Student
     .filter(r => r.studentId === student.id)
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-  // Calculate Memorization Stats (Unique pages passed with <= 6 errors)
+  // Calculate Recitation Stats (Unique pages read with <= 6 errors)
   const passedPages = Array.from(new Set(
     studentRecitations
       .filter(r => r.errorCount <= 6)
       .map(r => r.pageNumber)
   )).sort((a, b) => a - b);
 
-  const totalMemorized = passedPages.length;
+  const totalRead = passedPages.length;
   const pageRanges = getPageRanges(passedPages);
   const juzProgress = getJuzProgress(passedPages);
 
@@ -101,8 +101,8 @@ export function StudentDetailReport({ student, recitations }: { student: Student
         </Card>
         <Card className="bg-green-50 border-green-200">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-700">{totalMemorized}</div>
-            <div className="text-xs text-green-600">صفحة محفوظة</div>
+            <div className="text-2xl font-bold text-green-700">{totalRead}</div>
+            <div className="text-xs text-green-600">صفحة تلاوة</div>
           </CardContent>
         </Card>
         <Card className="bg-primary/5 border-primary/20">
@@ -121,25 +121,25 @@ export function StudentDetailReport({ student, recitations }: { student: Student
         </Card>
       </div>
 
-      {/* Memorization Progress Section */}
+      {/* Recitation Progress Section */}
       <Card className="overflow-hidden">
         <CardHeader className="bg-muted/10 pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <BookCheck className="w-5 h-5 text-green-600" />
-            محفوظات الطالب
+            تلاوات الطالب
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-6">
           {/* Ranges Text */}
           <div>
-            <h4 className="text-sm font-semibold text-muted-foreground mb-2">النطاقات المحفوظة:</h4>
+            <h4 className="text-sm font-semibold text-muted-foreground mb-2">نطاقات الصفحات المقروءة:</h4>
             <div className="flex flex-wrap gap-2">
               {pageRanges.length > 0 ? pageRanges.map((range, i) => (
                 <span key={i} className="px-2 py-1 bg-green-100 text-green-800 rounded-md text-sm font-mono font-bold border border-green-200">
                   {range}
                 </span>
               )) : (
-                <span className="text-sm text-muted-foreground italic">لا يوجد صفحات محفوظة بعد (أخطاء ≤ 6)</span>
+                <span className="text-sm text-muted-foreground italic">لا يوجد صفحات مقروءة بعد (أخطاء ≤ 6)</span>
               )}
             </div>
           </div>
@@ -148,7 +148,7 @@ export function StudentDetailReport({ student, recitations }: { student: Student
           <div>
              <h4 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
                <LayoutGrid className="w-4 h-4" />
-               التقدم في الأجزاء (30 جزء):
+               تقدم ختمة الطالبة (30 جزء):
              </h4>
              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-2">
                {juzProgress.map((juz) => {
@@ -171,7 +171,7 @@ export function StudentDetailReport({ student, recitations }: { student: Student
                      {/* Tooltip */}
                      {percent > 0 && (
                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded shadow-md border whitespace-nowrap hidden group-hover:block z-10">
-                         جزء {juz.juz}: {juz.completed} صفحة
+                         جزء {juz.juz}: {juz.completed} صفحة تلاوة
                        </div>
                      )}
                    </div>

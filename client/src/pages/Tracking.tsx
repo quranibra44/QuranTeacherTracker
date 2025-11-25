@@ -342,7 +342,12 @@ export default function Tracking() {
       <div className="space-y-4">
         <h3 className="text-2xl font-bold text-primary mb-4 border-r-4 border-secondary pr-3">آخر التلاوات المسجلة</h3>
         <div className="grid gap-4">
-          {recentActivity.length > 0 ? recentActivity.map(rec => {
+          {recentActivity.filter(rec => {
+            // Only show if student and teacher still exist
+            return students.some(s => s.id === rec.studentId) && teachers.some(t => t.id === rec.teacherId);
+          }).length > 0 ? recentActivity.filter(rec => {
+            return students.some(s => s.id === rec.studentId) && teachers.some(t => t.id === rec.teacherId);
+          }).map(rec => {
             const student = students.find(s => s.id === rec.studentId);
             const teacher = teachers.find(t => t.id === rec.teacherId);
             const rating = getRating(rec.errorCount);

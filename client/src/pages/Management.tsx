@@ -84,8 +84,11 @@ export default function Management() {
             </div>
           </div>
           <div className="flex gap-4">
-            <Button onClick={exportData} className="flex-1 bg-primary text-white h-12 text-lg shadow-sm hover:shadow hover:-translate-y-0.5 transition-all">
-              <Download className="ml-2 w-5 h-5" /> تصدير البيانات
+            <Button onClick={() => exportData('json')} className="flex-1 bg-primary text-white h-12 text-lg shadow-sm hover:shadow hover:-translate-y-0.5 transition-all">
+              <Download className="ml-2 w-5 h-5" /> تصدير JSON
+            </Button>
+            <Button onClick={() => exportData('csv')} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12 text-lg shadow-sm hover:shadow hover:-translate-y-0.5 transition-all">
+              <Download className="ml-2 w-5 h-5" /> تصدير CSV
             </Button>
             <div className="relative flex-1">
               <input 

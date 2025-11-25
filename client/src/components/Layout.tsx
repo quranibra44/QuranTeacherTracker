@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import logoUrl from '@assets/generated_images/elegant_islamic_school_logo_for_sumaya_school_quran_center.png';
+import blueLogo from '@assets/3_1764046956223.png';
+import greenLogo from '@assets/4_1764046956223.png';
 import { BookOpen, Settings } from 'lucide-react';
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -11,12 +12,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header className="bg-gradient-to-b from-primary/5 to-background pt-6 pb-6 px-4 flex flex-col items-center gap-4 border-b-2 border-primary/20">
         {/* Logos Section - Side by Side */}
         <div className="flex items-center justify-center gap-8">
-          <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
-            <img src={logoUrl} alt="School Logo" className="w-full h-full object-cover" />
+          <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white flex items-center justify-center">
+            <img src={blueLogo} alt="Mosque Logo" className="w-full h-full object-contain p-2" />
           </div>
-          <div className="w-1 h-16 bg-gradient-to-b from-primary/20 via-primary/50 to-primary/20 rounded-full"></div>
-          <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
-            <img src={logoUrl} alt="School Logo" className="w-full h-full object-cover" />
+          <div className="w-1 h-20 bg-gradient-to-b from-primary/20 via-primary/50 to-primary/20 rounded-full"></div>
+          <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white flex items-center justify-center">
+            <img src={greenLogo} alt="Sumaya School Logo" className="w-full h-full object-contain p-2" />
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,14 +8,66 @@ import { calculateBadges } from '@/lib/badges';
 import { format, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, subDays } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { Trophy, Calendar, TrendingUp, AlertCircle, CheckCircle2, Activity } from 'lucide-react';
+import { Trophy, Calendar, TrendingUp, AlertCircle, CheckCircle2, Activity, BookCheck, LayoutGrid } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const COLORS = ['#4a8b60', '#86efac', '#facc15', '#fb923c']; // Excellent, V.Good, Good, Needs Attention
+
+// Helper to calculate ranges from page numbers
+function getPageRanges(pages: number[]): string[] {
+  if (pages.length === 0) return [];
+  
+  const sorted = [...new Set(pages)].sort((a, b) => a - b);
+  const ranges: string[] = [];
+  let start = sorted[0];
+  let prev = sorted[0];
+
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] !== prev + 1) {
+      ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+      start = sorted[i];
+    }
+    prev = sorted[i];
+  }
+  ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+  return ranges;
+}
+
+// Helper to get Juz progress
+function getJuzProgress(memorizedPages: number[]) {
+  const juzData = Array.from({ length: 30 }, (_, i) => ({
+    juz: i + 1,
+    total: 20, // Approx 20 pages per Juz
+    completed: 0,
+    pages: [] as number[]
+  }));
+
+  memorizedPages.forEach(page => {
+    const juzIndex = Math.ceil((page - 1) / 20) - 1;
+    if (juzData[juzIndex]) {
+      juzData[juzIndex].completed++;
+      juzData[juzIndex].pages.push(page);
+    }
+  });
+
+  return juzData;
+}
 
 export function StudentDetailReport({ student, recitations }: { student: Student, recitations: Recitation[] }) {
   const studentRecitations = recitations
     .filter(r => r.studentId === student.id)
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+  // Calculate Memorization Stats (Unique pages passed with <= 6 errors)
+  const passedPages = [...new Set(
+    studentRecitations
+      .filter(r => r.errorCount <= 6)
+      .map(r => r.pageNumber)
+  )].sort((a, b) => a - b);
+
+  const totalMemorized = passedPages.length;
+  const pageRanges = getPageRanges(passedPages);
+  const juzProgress = getJuzProgress(passedPages);
 
   const badges = calculateBadges(studentRecitations);
 
@@ -26,14 +78,6 @@ export function StudentDetailReport({ student, recitations }: { student: Student
     { name: 'جيد', value: studentRecitations.filter(r => r.errorCount > 6 && r.errorCount <= 9).length, color: COLORS[2] },
     { name: 'يحتاج تركيز', value: studentRecitations.filter(r => r.errorCount > 9).length, color: COLORS[3] },
   ].filter(d => d.value > 0);
-
-  // Calculate Weekly Activity (Last 7 days)
-  const last7Days = Array.from({ length: 7 }, (_, i) => {
-    const d = subDays(new Date(), 6 - i);
-    const dayStr = format(d, 'yyyy-MM-dd');
-    const count = studentRecitations.filter(r => r.timestamp.startsWith(dayStr)).length;
-    return { day: format(d, 'EEE', { locale: ar }), count };
-  });
 
   // Calculate Error Trend (Last 10 sessions)
   const errorTrend = studentRecitations.slice(-10).map((r, i) => ({
@@ -55,10 +99,10 @@ export function StudentDetailReport({ student, recitations }: { student: Student
             <div className="text-xs text-muted-foreground">إجمالي التلاوات</div>
           </CardContent>
         </Card>
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="bg-green-50 border-green-200">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">{avgErrors}</div>
-            <div className="text-xs text-muted-foreground">متوسط الأخطاء</div>
+            <div className="text-2xl font-bold text-green-700">{totalMemorized}</div>
+            <div className="text-xs text-green-600">صفحة محفوظة</div>
           </CardContent>
         </Card>
         <Card className="bg-primary/5 border-primary/20">
@@ -76,6 +120,67 @@ export function StudentDetailReport({ student, recitations }: { student: Student
           </CardContent>
         </Card>
       </div>
+
+      {/* Memorization Progress Section */}
+      <Card className="overflow-hidden">
+        <CardHeader className="bg-muted/10 pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <BookCheck className="w-5 h-5 text-green-600" />
+            محفوظات الطالب
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4 space-y-6">
+          {/* Ranges Text */}
+          <div>
+            <h4 className="text-sm font-semibold text-muted-foreground mb-2">النطاقات المحفوظة:</h4>
+            <div className="flex flex-wrap gap-2">
+              {pageRanges.length > 0 ? pageRanges.map((range, i) => (
+                <span key={i} className="px-2 py-1 bg-green-100 text-green-800 rounded-md text-sm font-mono font-bold border border-green-200">
+                  {range}
+                </span>
+              )) : (
+                <span className="text-sm text-muted-foreground italic">لا يوجد صفحات محفوظة بعد (أخطاء ≤ 6)</span>
+              )}
+            </div>
+          </div>
+
+          {/* Juz Progress Grid */}
+          <div>
+             <h4 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+               <LayoutGrid className="w-4 h-4" />
+               التقدم في الأجزاء (30 جزء):
+             </h4>
+             <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-2">
+               {juzProgress.map((juz) => {
+                 const percent = Math.min(100, Math.round((juz.completed / juz.total) * 100));
+                 const isComplete = percent >= 100;
+                 
+                 return (
+                   <div key={juz.juz} className="relative group">
+                     <div className={`aspect-square rounded-lg border flex flex-col items-center justify-center p-1 transition-all ${isComplete ? 'bg-green-100 border-green-400' : percent > 0 ? 'bg-white border-primary/30' : 'bg-muted/20 border-transparent'}`}>
+                       <span className={`text-xs font-bold ${isComplete ? 'text-green-700' : 'text-muted-foreground'}`}>
+                         {juz.juz}
+                       </span>
+                       {percent > 0 && (
+                         <div className="w-full bg-muted/30 h-1.5 mt-1 rounded-full overflow-hidden">
+                           <div className="bg-green-500 h-full rounded-full" style={{ width: `${percent}%` }}></div>
+                         </div>
+                       )}
+                     </div>
+                     
+                     {/* Tooltip */}
+                     {percent > 0 && (
+                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded shadow-md border whitespace-nowrap hidden group-hover:block z-10">
+                         جزء {juz.juz}: {juz.completed} صفحة
+                       </div>
+                     )}
+                   </div>
+                 );
+               })}
+             </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Rating Distribution Chart */}
@@ -176,6 +281,7 @@ export function StudentDetailReport({ student, recitations }: { student: Student
     </div>
   );
 }
+
 
 export function TeacherDetailReport({ teacher, recitations }: { teacher: Teacher, recitations: Recitation[] }) {
   const teacherRecitations = recitations

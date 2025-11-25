@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Lock, Download, Upload, FileText, Users, GraduationCap, Trash2, Plus, X, Search, Filter, SortAsc, SortDesc } from 'lucide-react';
+import { Lock, Download, Upload, FileText, Users, GraduationCap, Trash2, Plus, X, Search, Filter, SortAsc, SortDesc, BookOpenCheck } from 'lucide-react';
 import { format, subDays, isAfter, parseISO } from 'date-fns';
 import { getRating } from '@/lib/types';
 import { StudentDetailReport, TeacherDetailReport } from '@/components/Reports';
@@ -15,7 +15,7 @@ export default function Management() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { teachers, students, recitations, addTeacher, deleteTeacher, addStudent, deleteStudent, exportData, importData } = useAppStore();
+  const { teachers, students, recitations, addTeacher, deleteTeacher, addStudent, deleteStudent, addRecitationBatch, exportData, importData } = useAppStore();
 
   // Login logic
   const handleLogin = (e: React.FormEvent) => {
@@ -189,7 +189,7 @@ export default function Management() {
       {/* Management Lists */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <TeacherManager teachers={teachers} addTeacher={addTeacher} deleteTeacher={deleteTeacher} />
-        <StudentManager students={students} addStudent={addStudent} deleteStudent={deleteStudent} />
+        <StudentManager students={students} addStudent={addStudent} deleteStudent={deleteStudent} addRecitationBatch={addRecitationBatch} />
       </div>
     </div>
   );
@@ -301,11 +301,17 @@ function TeacherManager({ teachers, addTeacher, deleteTeacher }: any) {
   );
 }
 
-function StudentManager({ students, addStudent, deleteStudent }: any) {
+function StudentManager({ students, addStudent, deleteStudent, addRecitationBatch }: any) {
   const [name, setName] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [multipleOpen, setMultipleOpen] = useState(false);
+  const [rangeOpen, setRangeOpen] = useState(false);
   const [multipleText, setMultipleText] = useState('');
+  
+  // Range State
+  const [rangeStudentId, setRangeStudentId] = useState('');
+  const [startPage, setStartPage] = useState('');
+  const [endPage, setEndPage] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -326,6 +332,35 @@ function StudentManager({ students, addStudent, deleteStudent }: any) {
     setMultipleOpen(false);
   };
 
+  const handleRangeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rangeStudentId || !startPage || !endPage) return;
+    
+    const start = parseInt(startPage);
+    const end = parseInt(endPage);
+    
+    if (isNaN(start) || isNaN(end) || start > end || start < 1 || end > 604) {
+      alert('أرقام الصفحات غير صحيحة');
+      return;
+    }
+
+    const pages = [];
+    for (let i = start; i <= end; i++) {
+      pages.push({
+        teacherId: 'system_import', // Marker for bulk import
+        studentId: rangeStudentId,
+        pageNumber: i,
+        errorCount: 0 // Assume perfect memorization for past records
+      });
+    }
+
+    addRecitationBatch(pages);
+    setStartPage('');
+    setEndPage('');
+    setRangeStudentId('');
+    setRangeOpen(false);
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
@@ -334,6 +369,7 @@ function StudentManager({ students, addStudent, deleteStudent }: any) {
           الطلاب ({students.length})
         </CardTitle>
         <div className="flex gap-2">
+            {/* Add Single Student */}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
                 <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1">
@@ -356,6 +392,65 @@ function StudentManager({ students, addStudent, deleteStudent }: any) {
             </DialogContent>
             </Dialog>
 
+            {/* Bulk Add Pages Range */}
+            <Dialog open={rangeOpen} onOpenChange={setRangeOpen}>
+            <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50 gap-1" title="إضافة محفوظات سابقة">
+                  <BookOpenCheck className="w-4 h-4" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                <DialogTitle>إضافة محفوظات سابقة (نطاق صفحات)</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleRangeSubmit} className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">الطالب</label>
+                    <Select onValueChange={setRangeStudentId} value={rangeStudentId}>
+                      <SelectTrigger className="text-right">
+                        <SelectValue placeholder="اختر الطالب" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {students.map((s: any) => (
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">من صفحة</label>
+                      <Input 
+                        type="number" 
+                        min={1} 
+                        max={604}
+                        value={startPage} 
+                        onChange={e => setStartPage(e.target.value)} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">إلى صفحة</label>
+                      <Input 
+                        type="number" 
+                        min={1} 
+                        max={604}
+                        value={endPage} 
+                        onChange={e => setEndPage(e.target.value)} 
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-yellow-50 p-3 rounded text-xs text-yellow-800 border border-yellow-200">
+                    سيتم تسجيل هذه الصفحات كـ "تلاوة ممتازة" (0 أخطاء) للإشارة إلى الحفظ المتقن.
+                  </div>
+
+                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">إضافة السجلات</Button>
+                </form>
+            </DialogContent>
+            </Dialog>
+
+            {/* Bulk Add Students */}
             <Dialog open={multipleOpen} onOpenChange={setMultipleOpen}>
             <DialogTrigger asChild>
                 <Button size="sm" variant="outline" className="text-secondary border-secondary hover:bg-secondary/10 gap-1">

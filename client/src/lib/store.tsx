@@ -11,6 +11,7 @@ interface AppContextType {
   addStudent: (name: string) => void;
   deleteStudent: (id: string) => void;
   addRecitation: (recitation: Omit<Recitation, 'id' | 'timestamp'>) => void;
+  addRecitationBatch: (items: Omit<Recitation, 'id' | 'timestamp'>[]) => void;
   importData: (data: any) => void;
   exportData: () => void;
 }
@@ -87,6 +88,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast({ title: "Recitation recorded successfully", className: "bg-primary text-white border-none" });
   };
 
+  const addRecitationBatch = (items: Omit<Recitation, 'id' | 'timestamp'>[]) => {
+    if (teachers.length + students.length + recitations.length + items.length > 999) {
+      toast({ title: "Cannot add all records: Limit reached", variant: "destructive" });
+      return;
+    }
+
+    const newRecitations = items.map((item, index) => ({
+      ...item,
+      id: `reading_${Date.now()}_${index}_${Math.floor(Math.random() * 1000)}`,
+      timestamp: new Date().toISOString()
+    }));
+
+    setRecitations(prev => [...newRecitations, ...prev]);
+    toast({ title: `Added ${items.length} records successfully`, className: "bg-primary text-white border-none" });
+  };
+
   const exportData = () => {
     const data = {
       version: 1,
@@ -123,7 +140,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       teachers, students, recitations,
       addTeacher, deleteTeacher,
       addStudent, deleteStudent,
-      addRecitation,
+      addRecitation, addRecitationBatch,
       importData, exportData
     }}>
       {children}

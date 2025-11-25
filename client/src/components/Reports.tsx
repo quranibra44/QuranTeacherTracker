@@ -17,7 +17,7 @@ const COLORS = ['#4a8b60', '#86efac', '#facc15', '#fb923c']; // Excellent, V.Goo
 function getPageRanges(pages: number[]): string[] {
   if (pages.length === 0) return [];
   
-  const sorted = [...new Set(pages)].sort((a, b) => a - b);
+  const sorted = Array.from(new Set(pages)).sort((a, b) => a - b);
   const ranges: string[] = [];
   let start = sorted[0];
   let prev = sorted[0];
@@ -59,11 +59,11 @@ export function StudentDetailReport({ student, recitations }: { student: Student
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
   // Calculate Memorization Stats (Unique pages passed with <= 6 errors)
-  const passedPages = [...new Set(
+  const passedPages = Array.from(new Set(
     studentRecitations
       .filter(r => r.errorCount <= 6)
       .map(r => r.pageNumber)
-  )].sort((a, b) => a - b);
+  )).sort((a, b) => a - b);
 
   const totalMemorized = passedPages.length;
   const pageRanges = getPageRanges(passedPages);

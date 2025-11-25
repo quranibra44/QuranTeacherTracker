@@ -17,6 +17,7 @@ export type Recitation = {
   pageNumber: number;
   errorCount: number;
   timestamp: string;
+  isBulkImport?: boolean;
 };
 
 export type PerformanceRating = 'Excellent' | 'Very Good' | 'Good' | 'Needs Attention';

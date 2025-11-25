@@ -118,8 +118,9 @@ export default function Tracking() {
     }, 600);
   }
 
-  // Activity Feed
+  // Activity Feed - Exclude bulk imports
   const recentActivity = recitations
+    .filter(r => !r.isBulkImport)
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 10);
 

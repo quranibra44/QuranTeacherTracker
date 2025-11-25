@@ -350,7 +350,8 @@ function StudentManager({ students, addStudent, deleteStudent, addRecitationBatc
         teacherId: 'system_import', // Marker for bulk import
         studentId: rangeStudentId,
         pageNumber: i,
-        errorCount: 0 // Assume perfect memorization for past records
+        errorCount: 0, // Assume perfect memorization for past records
+        isBulkImport: true // Mark to exclude from main activity feed
       });
     }
 

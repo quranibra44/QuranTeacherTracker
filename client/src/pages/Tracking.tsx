@@ -32,7 +32,7 @@ export default function Tracking() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      errorCount: 0,
+      errorCount: undefined,
     },
   });
 
@@ -111,7 +111,7 @@ export default function Tracking() {
         teacherId: values.teacherId, // Keep teacher selected
         studentId: '',
         pageNumber: undefined,
-        errorCount: 0
+        errorCount: undefined
       });
       setSelectedStudentId(null);
       setIsSubmitting(false);

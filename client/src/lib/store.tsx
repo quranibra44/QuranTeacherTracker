@@ -107,8 +107,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const exportData = (format: 'csv' = 'csv') => {
-    // Generate CSV
-    let csv = 'المعلم,الطالب,الصفحة,الأخطاء,التاريخ والوقت,التقييم\n';
+    // Generate CSV with semicolon delimiter for better Arabic support
+    let csv = 'المعلم;الطالب;الصفحة;الأخطاء;التاريخ;التقييم\n';
     
     const getRating = (errors: number) => {
       if (errors <= 3) return 'ممتاز';
@@ -120,9 +120,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     recitations.forEach(rec => {
       const teacher = teachers.find(t => t.id === rec.teacherId)?.name || 'غير معروف';
       const student = students.find(s => s.id === rec.studentId)?.name || 'غير معروف';
-      const date = new Date(rec.timestamp).toLocaleString('ar-SA');
+      const date = new Date(rec.timestamp).toLocaleDateString('ar-SA');
+      const time = new Date(rec.timestamp).toLocaleTimeString('ar-SA');
       const rating = getRating(rec.errorCount);
-      csv += `"${teacher}","${student}",${rec.pageNumber},${rec.errorCount},"${date}","${rating}"\n`;
+      csv += `${teacher};${student};${rec.pageNumber};${rec.errorCount};${date} ${time};${rating}\n`;
     });
     
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

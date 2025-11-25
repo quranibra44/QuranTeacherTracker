@@ -61,37 +61,6 @@ export default function Management() {
 
   return (
     <div className="space-y-8 pb-20 animate-in fade-in duration-500">
-      {/* Section A: Backup */}
-      <Card className="overflow-hidden border-t-4 border-t-primary">
-        <CardHeader className="bg-primary/5 pb-4">
-          <CardTitle className="flex items-center gap-2 text-primary text-2xl">
-            <Download className="w-6 h-6" />
-            النسخ الاحتياطي والإحصائيات
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="bg-white p-6 rounded-xl text-center border border-border shadow-sm hover:shadow-md transition-shadow">
-              <div className="text-4xl font-bold text-primary mb-1">{teachers.length}</div>
-              <div className="text-sm font-medium text-muted-foreground">معلم</div>
-            </div>
-            <div className="bg-white p-6 rounded-xl text-center border border-border shadow-sm hover:shadow-md transition-shadow">
-              <div className="text-4xl font-bold text-primary mb-1">{students.length}</div>
-              <div className="text-sm font-medium text-muted-foreground">طالب</div>
-            </div>
-            <div className="bg-white p-6 rounded-xl text-center border border-border shadow-sm hover:shadow-md transition-shadow">
-              <div className="text-4xl font-bold text-primary mb-1">{recitations.length}</div>
-              <div className="text-sm font-medium text-muted-foreground">تلاوة</div>
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <Button onClick={() => exportData('csv')} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12 text-lg shadow-sm hover:shadow hover:-translate-y-0.5 transition-all print:bg-blue-600">
-              <Download className="ml-2 w-5 h-5" /> طباعة التقرير (CSV)
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Reports Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-t-4 border-t-secondary">
@@ -167,6 +136,37 @@ export default function Management() {
         <TeacherManager teachers={teachers} addTeacher={addTeacher} deleteTeacher={deleteTeacher} />
         <StudentManager students={students} addStudent={addStudent} deleteStudent={deleteStudent} />
       </div>
+
+      {/* Statistics Section - At Bottom */}
+      <Card className="overflow-hidden border-t-4 border-t-primary">
+        <CardHeader className="bg-primary/5 pb-4">
+          <CardTitle className="flex items-center gap-2 text-primary text-2xl">
+            <Download className="w-6 h-6" />
+            الإحصائيات
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="bg-white p-6 rounded-xl text-center border border-border shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-4xl font-bold text-primary mb-1">{teachers.length}</div>
+              <div className="text-sm font-medium text-muted-foreground">معلم</div>
+            </div>
+            <div className="bg-white p-6 rounded-xl text-center border border-border shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-4xl font-bold text-primary mb-1">{students.length}</div>
+              <div className="text-sm font-medium text-muted-foreground">طالب</div>
+            </div>
+            <div className="bg-white p-6 rounded-xl text-center border border-border shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-4xl font-bold text-primary mb-1">{recitations.length}</div>
+              <div className="text-sm font-medium text-muted-foreground">تلاوة</div>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <Button onClick={() => exportData('csv')} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-12 text-lg shadow-sm hover:shadow hover:-translate-y-0.5 transition-all">
+              <Download className="ml-2 w-5 h-5" /> تصدير التقرير (CSV)
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -573,37 +573,33 @@ function ReportDialog({ title, type, role, data, recitations, children }: any) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 bg-muted/10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-2">
             {filteredData.map((item: any, i: number) => (
               <Dialog key={item.id}>
                 <DialogTrigger asChild>
-                  <Card className="overflow-hidden hover:shadow-md transition-all cursor-pointer hover:border-primary group">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="font-bold text-lg truncate flex gap-2">
-                          <span className="text-muted-foreground group-hover:text-primary transition-colors">{i+1}.</span>
-                          {item.name}
+                  <div className="p-4 bg-white border rounded-lg hover:border-primary hover:shadow-md transition-all cursor-pointer group">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        <span className="text-muted-foreground font-medium w-6 text-center">{i+1}.</span>
+                        <div className="flex-1">
+                          <div className="font-bold text-lg">{item.name}</div>
                         </div>
-                        {item.stats.count > 0 && <span className="text-yellow-500 text-xl">⭐</span>}
                       </div>
-                      
-                      <div className={`grid ${role === 'student' ? 'grid-cols-1' : 'grid-cols-2'} gap-2 text-center text-sm mb-3`}>
-                        <div className="bg-muted/30 p-2 rounded group-hover:bg-primary/5 transition-colors">
-                          <div className="font-bold text-primary">{item.stats.days}</div>
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <div className="font-bold text-lg text-primary">{item.stats.days}</div>
                           <div className="text-xs text-muted-foreground">أيام</div>
                         </div>
                         {role === 'teacher' && (
-                          <div className="bg-muted/30 p-2 rounded group-hover:bg-primary/5 transition-colors">
-                            <div className="font-bold text-primary">{item.stats.uniqueStudents}</div>
+                          <div className="text-center">
+                            <div className="font-bold text-lg text-primary">{item.stats.uniqueStudents}</div>
                             <div className="text-xs text-muted-foreground">طلاب</div>
                           </div>
                         )}
+                        {item.stats.count > 0 && <span className="text-yellow-500 text-xl">⭐</span>}
                       </div>
-                      <div className="text-center text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                         اضغط للتفاصيل
-                      </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </DialogTrigger>
                 <DialogContent className="max-w-3xl h-[80vh] overflow-y-auto">
                   <DialogHeader>

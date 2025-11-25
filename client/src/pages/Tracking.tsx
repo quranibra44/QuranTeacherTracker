@@ -9,8 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getRating } from '@/lib/types';
-import { Star, CheckCircle2, AlertCircle, BookOpen } from 'lucide-react';
+import { Star, CheckCircle2, AlertCircle, BookOpen, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
+import confetti from 'canvas-confetti';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 const formSchema = z.object({
   teacherId: z.string().min(1, "Required"),
@@ -31,22 +33,57 @@ export default function Tracking() {
     },
   });
 
-  // Watch for student changes to update history
+  // Watch for student changes to update history and predict next page
   const watchedStudentId = form.watch("studentId");
+  
   React.useEffect(() => {
-    if (watchedStudentId) setSelectedStudentId(watchedStudentId);
-  }, [watchedStudentId]);
+    if (watchedStudentId) {
+      setSelectedStudentId(watchedStudentId);
+      
+      // Smart Prediction: Find last page read and suggest next one
+      const studentRecitations = recitations
+        .filter(r => r.studentId === watchedStudentId)
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        
+      if (studentRecitations.length > 0) {
+        const lastPage = studentRecitations[0].pageNumber;
+        if (lastPage < 604) {
+          form.setValue("pageNumber", lastPage + 1);
+        }
+      }
+    }
+  }, [watchedStudentId, recitations, form]);
 
   const studentHistory = React.useMemo(() => {
     if (!selectedStudentId) return [];
     return recitations
       .filter(r => r.studentId === selectedStudentId)
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 3);
+      .slice(0, 10); // Get last 10 for chart
   }, [selectedStudentId, recitations]);
+
+  // Prepare chart data (reverse chronological for chart L-R)
+  const chartData = React.useMemo(() => {
+    return [...studentHistory].reverse().map(r => ({
+      date: format(new Date(r.timestamp), 'dd/MM'),
+      errors: r.errorCount,
+      page: r.pageNumber
+    }));
+  }, [studentHistory]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
+    
+    // Confetti if Excellent
+    if (values.errorCount <= 3) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#4a8b60', '#d4a574', '#ffffff']
+      });
+    }
+
     // Simulate network delay
     setTimeout(() => {
       addRecitation(values);
@@ -76,7 +113,7 @@ export default function Tracking() {
   return (
     <div className="space-y-8">
       {/* Section A: Recording Form */}
-      <Card className="border-t-4 border-t-primary shadow-sm">
+      <Card className="border-t-4 border-t-primary shadow-sm overflow-hidden">
         <CardHeader>
           <CardTitle className="text-2xl text-primary flex items-center gap-2">
             <BookOpen className="w-6 h-6" />
@@ -134,31 +171,73 @@ export default function Tracking() {
                 />
               </div>
 
-              {/* Student History Box */}
+              {/* Student Smart Insights Box */}
               {selectedStudentId && (
-                <div className="bg-accent/30 p-4 rounded-lg border border-accent animate-in slide-in-from-top-2">
-                  <h4 className="font-bold text-primary mb-3 flex items-center gap-2">
-                    <span className="text-xl">📜</span> سجل الطالب الأخير
-                  </h4>
-                  {studentHistory.length > 0 ? (
-                    <div className="space-y-2">
-                      {studentHistory.map(rec => {
-                         const tName = teachers.find(t => t.id === rec.teacherId)?.name || 'Unknown';
-                         return (
-                           <div key={rec.id} className="flex justify-between items-center bg-white p-2 rounded border border-border/50 text-sm">
-                             <span>صفحة {rec.pageNumber}</span>
-                             <span className="text-muted-foreground">{tName}</span>
-                             <span className="text-muted-foreground">{format(new Date(rec.timestamp), 'dd/MM')}</span>
-                             <span className={`px-2 py-0.5 rounded text-xs ${getBadgeColor(rec.errorCount)}`}>
-                               {rec.errorCount} أخطاء
-                             </span>
-                           </div>
-                         );
-                      })}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-2 fade-in">
+                  {/* Last 3 Records */}
+                  <div className="bg-accent/30 p-4 rounded-lg border border-accent">
+                    <h4 className="font-bold text-primary mb-3 flex items-center gap-2">
+                      <span className="text-xl">📜</span> آخر التلاوات
+                    </h4>
+                    {studentHistory.length > 0 ? (
+                      <div className="space-y-2">
+                        {studentHistory.slice(0, 3).map(rec => {
+                           const tName = teachers.find(t => t.id === rec.teacherId)?.name || 'Unknown';
+                           return (
+                             <div key={rec.id} className="flex justify-between items-center bg-white p-2 rounded border border-border/50 text-sm">
+                               <span>صفحة {rec.pageNumber}</span>
+                               <span className="text-muted-foreground text-xs">{tName}</span>
+                               <span className={`px-2 py-0.5 rounded text-xs ${getBadgeColor(rec.errorCount)}`}>
+                                 {rec.errorCount} أخطاء
+                               </span>
+                             </div>
+                           );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">لا يوجد سجلات سابقة</p>
+                    )}
+                  </div>
+
+                  {/* Progress Chart */}
+                  <div className="bg-white p-4 rounded-lg border border-border shadow-sm">
+                     <h4 className="font-bold text-primary mb-2 flex items-center gap-2 text-sm">
+                      <TrendingUp className="w-4 h-4" /> منحنى الأخطاء (آخر 10)
+                    </h4>
+                    <div className="h-[120px] w-full">
+                      {chartData.length > 1 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={chartData}>
+                            <defs>
+                              <linearGradient id="colorErrors" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#4a8b60" stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor="#4a8b60" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                            <XAxis dataKey="page" tick={{fontSize: 10}} tickLine={false} axisLine={false} />
+                            <YAxis tick={{fontSize: 10}} tickLine={false} axisLine={false} width={20} />
+                            <Tooltip 
+                              contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}
+                              labelStyle={{color: '#666'}}
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey="errors" 
+                              stroke="#4a8b60" 
+                              strokeWidth={2}
+                              fillOpacity={1} 
+                              fill="url(#colorErrors)" 
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      ) : (
+                         <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                           بيانات غير كافية للرسم البياني
+                         </div>
+                      )}
                     </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm">لا يوجد سجلات سابقة لهذا الطالب</p>
-                  )}
+                  </div>
                 </div>
               )}
 
@@ -195,7 +274,7 @@ export default function Tracking() {
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="w-full h-14 text-xl bg-primary hover:bg-primary/90 transition-all"
+                className="w-full h-14 text-xl bg-primary hover:bg-primary/90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 {isSubmitting ? "جاري الحفظ..." : "تسجيل التلاوة"}
               </Button>

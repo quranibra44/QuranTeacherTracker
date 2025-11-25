@@ -9,10 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getRating } from '@/lib/types';
-import { Star, CheckCircle2, AlertCircle, BookOpen, TrendingUp } from 'lucide-react';
+import { Star, CheckCircle2, AlertCircle, BookOpen, TrendingUp, Award } from 'lucide-react';
 import { format } from 'date-fns';
 import confetti from 'canvas-confetti';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { getQuranContext } from '@/lib/quran-data';
+import { calculateBadges } from '@/lib/badges';
 
 const formSchema = z.object({
   teacherId: z.string().min(1, "Required"),
@@ -25,6 +27,7 @@ export default function Tracking() {
   const { teachers, students, recitations, addRecitation } = useAppStore();
   const [selectedStudentId, setSelectedStudentId] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [pageContext, setPageContext] = React.useState<{surah: string, juz: number} | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -32,6 +35,17 @@ export default function Tracking() {
       errorCount: 0,
     },
   });
+
+  // Watch page number for context
+  const watchedPage = form.watch("pageNumber");
+  React.useEffect(() => {
+    if (watchedPage) {
+      const context = getQuranContext(watchedPage);
+      setPageContext(context);
+    } else {
+      setPageContext(null);
+    }
+  }, [watchedPage]);
 
   // Watch for student changes to update history and predict next page
   const watchedStudentId = form.watch("studentId");
@@ -60,6 +74,12 @@ export default function Tracking() {
       .filter(r => r.studentId === selectedStudentId)
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 10); // Get last 10 for chart
+  }, [selectedStudentId, recitations]);
+  
+  const earnedBadges = React.useMemo(() => {
+    if (!selectedStudentId) return [];
+    const allStudentRecitations = recitations.filter(r => r.studentId === selectedStudentId);
+    return calculateBadges(allStudentRecitations);
   }, [selectedStudentId, recitations]);
 
   // Prepare chart data (reverse chronological for chart L-R)
@@ -175,12 +195,12 @@ export default function Tracking() {
               {selectedStudentId && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-2 fade-in">
                   {/* Last 3 Records */}
-                  <div className="bg-accent/30 p-4 rounded-lg border border-accent">
+                  <div className="bg-accent/30 p-4 rounded-lg border border-accent flex flex-col">
                     <h4 className="font-bold text-primary mb-3 flex items-center gap-2">
                       <span className="text-xl">📜</span> آخر التلاوات
                     </h4>
                     {studentHistory.length > 0 ? (
-                      <div className="space-y-2">
+                      <div className="space-y-2 mb-3">
                         {studentHistory.slice(0, 3).map(rec => {
                            const tName = teachers.find(t => t.id === rec.teacherId)?.name || 'Unknown';
                            return (
@@ -195,8 +215,26 @@ export default function Tracking() {
                         })}
                       </div>
                     ) : (
-                      <p className="text-muted-foreground text-sm">لا يوجد سجلات سابقة</p>
+                      <p className="text-muted-foreground text-sm mb-3">لا يوجد سجلات سابقة</p>
                     )}
+                    
+                    {/* Badges Row */}
+                    <div className="mt-auto pt-2 border-t border-border/50">
+                       <div className="flex items-center gap-1 mb-2">
+                         <Award className="w-4 h-4 text-yellow-600" />
+                         <span className="text-sm font-bold text-primary">أوسمة الطالب</span>
+                       </div>
+                       <div className="flex flex-wrap gap-2">
+                         {earnedBadges.length > 0 ? earnedBadges.map(badge => (
+                           <div key={badge.id} className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 border ${badge.color}`} title={badge.description}>
+                             <span>{badge.icon}</span>
+                             <span>{badge.name}</span>
+                           </div>
+                         )) : (
+                           <span className="text-xs text-muted-foreground">لم يحصل على أوسمة بعد</span>
+                         )}
+                       </div>
+                    </div>
                   </div>
 
                   {/* Progress Chart */}
@@ -249,7 +287,16 @@ export default function Tracking() {
                     <FormItem>
                       <FormLabel>رقم الصفحة (1-604)</FormLabel>
                       <FormControl>
-                        <Input type="number" min={1} max={604} {...field} className="h-12 text-lg bg-white" />
+                        <div className="relative">
+                          <Input type="number" min={1} max={604} {...field} className="h-12 text-lg bg-white" />
+                          {pageContext && (
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground bg-muted/20 px-2 py-1 rounded pointer-events-none flex items-center gap-2">
+                              <span className="font-bold text-primary">{pageContext.surah}</span>
+                              <span className="w-px h-4 bg-border"></span>
+                              <span>جزء {pageContext.juz}</span>
+                            </div>
+                          )}
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

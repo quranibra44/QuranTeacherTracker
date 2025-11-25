@@ -117,17 +117,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return 'يحتاج تركيز';
     };
     
-    // Escape CSV function for proper quoting
-    const escapeCsv = (value: string | number) => {
+    // Properly escape CSV values with quotes
+    const escapeCsv = (value: string | number): string => {
       const strValue = String(value);
-      if (strValue.includes(',') || strValue.includes('"') || strValue.includes('\n')) {
-        return `"${strValue.replace(/"/g, '""')}"`;
-      }
-      return strValue;
+      // Always quote to preserve Arabic text properly in Excel
+      return `"${strValue.replace(/"/g, '""')}"`;
     };
     
-    // Header row with tab delimiter for better Excel compatibility
-    let csv = BOM + 'المعلمة\tالطالبة\tالصفحة\tالأخطاء\tالتاريخ والوقت\tالتقييم\n';
+    // Header row - comma-separated with quotes
+    let csv = BOM + '"المعلمة","الطالبة","الصفحة","الأخطاء","التاريخ والوقت","التقييم"\n';
     
     // Data rows
     recitations.forEach(rec => {
@@ -137,13 +135,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const time = new Date(rec.timestamp).toLocaleTimeString('ar-SA');
       const rating = getRating(rec.errorCount);
       const row = [
-        teacher,
-        student,
-        rec.pageNumber,
-        rec.errorCount,
-        `${date} ${time}`,
-        rating
-      ].join('\t');
+        escapeCsv(teacher),
+        escapeCsv(student),
+        escapeCsv(rec.pageNumber),
+        escapeCsv(rec.errorCount),
+        escapeCsv(`${date} ${time}`),
+        escapeCsv(rating)
+      ].join(',');
       csv += row + '\n';
     });
     

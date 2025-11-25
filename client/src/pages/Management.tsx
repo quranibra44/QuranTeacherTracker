@@ -623,10 +623,16 @@ function ReportDialog({ title, type, role, data, recitations, children }: any) {
                           <div className="font-bold text-lg text-primary">{item.stats.days}</div>
                           <div className="text-xs text-muted-foreground">أيام</div>
                         </div>
+                        {role === 'student' && (
+                          <div className="text-center">
+                            <div className="font-bold text-lg text-red-600">{item.stats.errors}</div>
+                            <div className="text-xs text-muted-foreground">أخطاء</div>
+                          </div>
+                        )}
                         {role === 'teacher' && (
                           <div className="text-center">
                             <div className="font-bold text-lg text-primary">{item.stats.uniqueStudents}</div>
-                            <div className="text-xs text-muted-foreground">طلاب</div>
+                            <div className="text-xs text-muted-foreground">طالبات</div>
                           </div>
                         )}
                         {item.stats.count > 0 && <span className="text-yellow-500 text-xl">⭐</span>}

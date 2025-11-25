@@ -1,38 +1,50 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import logoUrl from '@assets/generated_images/elegant_islamic_school_logo_for_sumaya_school_quran_center.png';
+import { BookOpen, Settings } from 'lucide-react';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground pb-20">
-      <header className="bg-background pt-8 pb-4 px-4 flex flex-col items-center gap-6">
-        {/* Logos Section */}
-        <div className="relative flex items-center justify-center h-32 w-full">
-          <div className="absolute left-1/2 -translate-x-[calc(50%+48px)] top-0 w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white z-10">
-            <img src={logoUrl} alt="School Logo 1" className="w-full h-full object-cover" />
+      <header className="bg-gradient-to-b from-primary/5 to-background pt-6 pb-6 px-4 flex flex-col items-center gap-4 border-b-2 border-primary/20">
+        {/* Logos Section - Side by Side */}
+        <div className="flex items-center justify-center gap-8">
+          <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
+            <img src={logoUrl} alt="School Logo" className="w-full h-full object-cover" />
           </div>
-          <div className="absolute left-1/2 -translate-x-[calc(50%-48px)] top-0 w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/90 z-0 opacity-80">
-             {/* Using same logo for mockup purposes, with spacing */}
-            <img src={logoUrl} alt="School Logo 2" className="w-full h-full object-cover" />
+          <div className="w-1 h-16 bg-gradient-to-b from-primary/20 via-primary/50 to-primary/20 rounded-full"></div>
+          <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
+            <img src={logoUrl} alt="School Logo" className="w-full h-full object-cover" />
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl md:text-4xl font-bold text-primary mt-4 text-center">
+        <h1 className="text-3xl md:text-4xl font-bold text-primary text-center leading-tight">
           مقرأة مدرسة سمية
         </h1>
+        <p className="text-sm text-secondary font-medium">نظام متابعة تلاوة القرآن الكريم</p>
 
-        {/* Navigation Tabs */}
-        <nav className="flex w-full max-w-md bg-white rounded-full p-1 shadow-sm border border-border gap-2">
+        {/* Navigation Tabs - Improved */}
+        <nav className="flex w-full max-w-2xl bg-white rounded-xl shadow-lg border-2 border-primary/10 p-2 gap-2">
           <Link href="/">
-            <a className={`flex-1 py-3 text-center rounded-full transition-all duration-200 text-lg font-medium ${location === '/' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}>
+            <a className={`flex-1 py-4 px-4 text-center rounded-lg transition-all duration-300 text-base font-bold flex items-center justify-center gap-2 ${
+              location === '/' 
+                ? 'bg-primary text-white shadow-lg scale-105' 
+                : 'text-primary hover:bg-primary/5'
+            }`}>
+              <BookOpen className="w-5 h-5" />
               متابعة التلاوة
             </a>
           </Link>
           <Link href="/management">
-            <a className={`flex-1 py-3 text-center rounded-full transition-all duration-200 text-lg font-medium ${location === '/management' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}>
+            <a className={`flex-1 py-4 px-4 text-center rounded-lg transition-all duration-300 text-base font-bold flex items-center justify-center gap-2 ${
+              location === '/management' 
+                ? 'bg-primary text-white shadow-lg scale-105' 
+                : 'text-primary hover:bg-primary/5'
+            }`}>
+              <Settings className="w-5 h-5" />
               إدارة المقرأة
             </a>
           </Link>

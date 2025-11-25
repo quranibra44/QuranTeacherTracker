@@ -11,14 +11,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background font-sans text-foreground pb-20">
       <header className="bg-gradient-to-b from-primary/5 to-background pt-6 pb-6 px-4 flex flex-col items-center gap-4 border-b-2 border-primary/20">
         {/* Logos Section - Side by Side */}
-        <div className="flex items-center justify-center gap-8">
-          <div className="w-40 h-40 rounded-full shadow-xl overflow-hidden flex items-center justify-center">
-            <img src={greenLogo} alt="Sumaya School Logo" className="w-full h-full object-contain" />
-          </div>
+        <div className="flex items-center justify-center gap-12">
+          <img src={greenLogo} alt="Sumaya School Logo" className="h-40 w-40 object-contain" />
           <div className="w-1.5 h-28 bg-gradient-to-b from-primary/20 via-primary/50 to-primary/20 rounded-full"></div>
-          <div className="w-40 h-40 rounded-full shadow-xl overflow-hidden flex items-center justify-center">
-            <img src={blueLogo} alt="Mosque Logo" className="w-full h-full object-contain" />
-          </div>
+          <img src={blueLogo} alt="Mosque Logo" className="h-40 w-40 object-contain" />
         </div>
 
         {/* Title */}

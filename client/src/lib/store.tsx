@@ -21,15 +21,15 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   
-  // Initialize from localStorage or defaults
+  // Initialize from localStorage or defaults (start with empty database)
   const [teachers, setTeachers] = useState<Teacher[]>(() => {
     const saved = localStorage.getItem('teachers');
-    return saved ? JSON.parse(saved) : initialTeachers;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [students, setStudents] = useState<Student[]>(() => {
     const saved = localStorage.getItem('students');
-    return saved ? JSON.parse(saved) : initialStudents;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [recitations, setRecitations] = useState<Recitation[]>(() => {
@@ -107,8 +107,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const exportData = (format: 'csv' = 'csv') => {
-    // Generate CSV with semicolon delimiter for better Arabic support
-    let csv = 'المعلم;الطالب;الصفحة;الأخطاء;التاريخ;التقييم\n';
+    // UTF-8 BOM for proper Arabic support in Excel
+    const BOM = '\uFEFF';
+    // Generate CSV with tab delimiter for better Arabic support and compatibility
+    let csv = BOM + 'المعلم\tالطالب\tالصفحة\tالأخطاء\tالتاريخ والوقت\tالتقييم\n';
     
     const getRating = (errors: number) => {
       if (errors <= 3) return 'ممتاز';
@@ -123,9 +125,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const date = new Date(rec.timestamp).toLocaleDateString('ar-SA');
       const time = new Date(rec.timestamp).toLocaleTimeString('ar-SA');
       const rating = getRating(rec.errorCount);
-      csv += `${teacher};${student};${rec.pageNumber};${rec.errorCount};${date} ${time};${rating}\n`;
+      csv += `${teacher}\t${student}\t${rec.pageNumber}\t${rec.errorCount}\t${date} ${time}\t${rating}\n`;
     });
     
+    // Use UTF-8 encoding with BOM for proper Arabic character support
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

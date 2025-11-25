@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Lock, Download, Upload, FileText, Users, GraduationCap, Trash2, Plus, X, Search, Filter, SortAsc, SortDesc } from 'lucide-react';
 import { format, subDays, isAfter, parseISO } from 'date-fns';
 import { getRating } from '@/lib/types';
+import { StudentDetailReport, TeacherDetailReport } from '@/components/Reports';
 
 export default function Management() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -512,36 +513,55 @@ function ReportDialog({ title, type, role, data, recitations, children }: any) {
         <div className="flex-1 overflow-y-auto p-4 bg-muted/10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredData.map((item: any, i: number) => (
-              <Card key={item.id} className="overflow-hidden hover:shadow-md transition-all">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="font-bold text-lg truncate flex gap-2">
-                      <span className="text-muted-foreground">{i+1}.</span>
-                      {item.name}
-                    </div>
-                    {item.stats.count > 0 && <span className="text-yellow-500 text-xl">⭐</span>}
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-2 text-center text-sm mb-3">
-                    <div className="bg-muted/30 p-2 rounded">
-                      <div className="font-bold text-primary">{item.stats.days}</div>
-                      <div className="text-xs text-muted-foreground">أيام</div>
-                    </div>
-                    <div className="bg-muted/30 p-2 rounded">
-                      <div className="font-bold text-primary">
-                        {role === 'teacher' ? item.stats.uniqueStudents : item.stats.errors}
+              <Dialog key={item.id}>
+                <DialogTrigger asChild>
+                  <Card className="overflow-hidden hover:shadow-md transition-all cursor-pointer hover:border-primary group">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="font-bold text-lg truncate flex gap-2">
+                          <span className="text-muted-foreground group-hover:text-primary transition-colors">{i+1}.</span>
+                          {item.name}
+                        </div>
+                        {item.stats.count > 0 && <span className="text-yellow-500 text-xl">⭐</span>}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {role === 'teacher' ? 'طلاب' : 'أخطاء'}
+                      
+                      <div className="grid grid-cols-3 gap-2 text-center text-sm mb-3">
+                        <div className="bg-muted/30 p-2 rounded group-hover:bg-primary/5 transition-colors">
+                          <div className="font-bold text-primary">{item.stats.days}</div>
+                          <div className="text-xs text-muted-foreground">أيام</div>
+                        </div>
+                        <div className="bg-muted/30 p-2 rounded group-hover:bg-primary/5 transition-colors">
+                          <div className="font-bold text-primary">
+                            {role === 'teacher' ? item.stats.uniqueStudents : item.stats.errors}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {role === 'teacher' ? 'طلاب' : 'أخطاء'}
+                          </div>
+                        </div>
+                        <div className="bg-muted/30 p-2 rounded group-hover:bg-primary/5 transition-colors">
+                          <div className="font-bold text-primary">{item.stats.count}</div>
+                          <div className="text-xs text-muted-foreground">تلاوة</div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="bg-muted/30 p-2 rounded">
-                      <div className="font-bold text-primary">{item.stats.count}</div>
-                      <div className="text-xs text-muted-foreground">تلاوة</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                      <div className="text-center text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                         اضغط للتفاصيل
+                      </div>
+                    </CardContent>
+                  </Card>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl text-primary border-b pb-2 mb-4">
+                      تقرير تفصيلي: {item.name}
+                    </DialogTitle>
+                  </DialogHeader>
+                  {role === 'student' ? (
+                    <StudentDetailReport student={item} recitations={recitations} />
+                  ) : (
+                    <TeacherDetailReport teacher={item} recitations={recitations} />
+                  )}
+                </DialogContent>
+              </Dialog>
             ))}
           </div>
         </div>

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Lock, Download, Upload, FileText, Users, GraduationCap, Trash2, Plus, X, Search, Filter, SortAsc, SortDesc, PrinterIcon } from 'lucide-react';
+import { Lock, Download, Upload, FileText, Users, GraduationCap, Trash2, Plus, X, Search, Filter, SortAsc, SortDesc } from 'lucide-react';
 import { format, subDays, isAfter, parseISO } from 'date-fns';
 import { getRating } from '@/lib/types';
 import { StudentDetailReport, TeacherDetailReport } from '@/components/Reports';
@@ -156,66 +156,6 @@ export default function Management() {
            </CardContent>
         </Card>
       </div>
-
-      {/* All Students Performance Report Button */}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white h-14 text-lg shadow-lg">
-            <PrinterIcon className="ml-2 w-5 h-5" /> تقرير الأداء الشامل لجميع الطالبات
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-4xl h-[90vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl text-primary">تقرير الأداء الشامل لجميع الطالبات</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {students.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">لا توجد طالبات مسجلة</p>
-            ) : (
-              students.map((student, index) => {
-                const studentRecs = recitations.filter(r => r.studentId === student.id);
-                const totalRecs = studentRecs.length;
-                const totalErrors = studentRecs.reduce((sum, r) => sum + r.errorCount, 0);
-                const avgErrorsNum = totalRecs > 0 ? totalErrors / totalRecs : 0;
-                const avgErrorsDisplay = avgErrorsNum.toFixed(1);
-                const uniqueDays = new Set(studentRecs.map(r => r.timestamp.split('T')[0])).size;
-                
-                return (
-                  <div key={student.id} className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <div className="text-lg font-bold text-primary">{index + 1}. {student.name}</div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-4 gap-3 text-center text-sm">
-                      <div className="bg-blue-50 p-3 rounded">
-                        <div className="font-bold text-blue-700">{totalRecs}</div>
-                        <div className="text-xs text-muted-foreground">تلاوات</div>
-                      </div>
-                      <div className="bg-green-50 p-3 rounded">
-                        <div className="font-bold text-green-700">{uniqueDays}</div>
-                        <div className="text-xs text-muted-foreground">أيام</div>
-                      </div>
-                      <div className="bg-red-50 p-3 rounded">
-                        <div className="font-bold text-red-700">{totalErrors}</div>
-                        <div className="text-xs text-muted-foreground">أخطاء</div>
-                      </div>
-                      <div className={`p-3 rounded font-bold text-sm ${avgErrorsNum <= 3 ? 'bg-green-100 text-green-700' : avgErrorsNum <= 6 ? 'bg-blue-100 text-blue-700' : avgErrorsNum <= 9 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                        {totalRecs > 0 ? `${avgErrorsDisplay} أخطاء/تلاوة` : '-'}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-          <div className="flex gap-3 mt-6">
-            <Button onClick={() => window.print()} className="flex-1 bg-primary text-white">
-              <PrinterIcon className="ml-2 w-4 h-4" /> طباعة
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Management Lists */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

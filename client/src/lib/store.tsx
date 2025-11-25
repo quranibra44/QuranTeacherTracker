@@ -107,8 +107,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const exportData = (format: 'csv' = 'csv') => {
-    // Create CSV content using tab delimiter for better Excel compatibility
-    let csv = 'المعلمة\tالطالبة\tالصفحة\tالأخطاء\tالتاريخ والوقت\tالتقييم\n';
+    // Create proper CSV content for Excel
+    const BOM = '\uFEFF';
+    let csv = BOM + 'المعلمة,الطالبة,الصفحة,الأخطاء,التاريخ والوقت,التقييم\n';
     
     const getRating = (errors: number) => {
       if (errors <= 3) return 'ممتاز';
@@ -117,26 +118,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return 'يحتاج تركيز';
     };
     
-    // Data rows using tab delimiter
+    // Helper to properly escape CSV values
+    const escapeCsv = (val: string | number): string => {
+      const str = String(val);
+      // Only quote if contains comma, quote, or newline
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+    
+    // Data rows
     recitations.forEach(rec => {
       const teacher = teachers.find(t => t.id === rec.teacherId)?.name || 'غير معروف';
       const student = students.find(s => s.id === rec.studentId)?.name || 'غير معروف';
       const date = new Date(rec.timestamp).toLocaleDateString('ar-SA');
       const time = new Date(rec.timestamp).toLocaleTimeString('ar-SA');
       const rating = getRating(rec.errorCount);
-      csv += `${teacher}\t${student}\t${rec.pageNumber}\t${rec.errorCount}\t${date} ${time}\t${rating}\n`;
+      csv += `${escapeCsv(teacher)},${escapeCsv(student)},${rec.pageNumber},${rec.errorCount},${escapeCsv(`${date} ${time}`)},${escapeCsv(rating)}\n`;
     });
     
-    // Create file with UTF-8 BOM for Excel compatibility
-    const BOM = '\uFEFF';
-    const csvWithBOM = BOM + csv;
-    
-    // Use tab-separated format which Excel recognizes better
-    const blob = new Blob([csvWithBOM], { type: 'text/tab-separated-values;charset=utf-8;' });
+    // Save as Excel-compatible CSV
+    const blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `quran-tracking-report-${new Date().toISOString().split('T')[0]}.tsv`;
+    a.download = `quran-tracking-report-${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
